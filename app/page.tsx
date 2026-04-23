@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import Section from "./components/Section";
 
-const BASE_URL = "https://webysistemas.mx";
+const BASE_URL = process.env.NEXT_PUBLIC_DRUPAL_BASE_URL!;
 
 //  Helper universal para Drupal (media → file)
 const getFileUrl = (entity: any, field: string, filesMap: any) => {
@@ -37,7 +37,7 @@ export default function HomePage() {
   useEffect(() => {
     // 🔹 Certificates (media → file)
     fetch(
-      `${BASE_URL}/web/jsonapi/node/certificate?include=field_certificate_file,field_certificate_file.field_media_document`
+      `${BASE_URL}/jsonapi/node/certificate?include=field_certificate_file,field_certificate_file.field_media_document`
     )
       .then((res) => res.json())
       .then((data) => {
@@ -53,7 +53,7 @@ export default function HomePage() {
 
     // 🔹 Letters (si también usan media)
     fetch(
-      `${BASE_URL}/web/jsonapi/node/laboral_letter?include=field_laboral_letter_file,field_laboral_letter_file.field_media_document`
+      `${BASE_URL}/jsonapi/node/laboral_letter?include=field_laboral_letter_file,field_laboral_letter_file.field_media_document`
     )
       .then((res) => res.json())
       .then((data) => {
@@ -69,7 +69,7 @@ export default function HomePage() {
 
     // 🔹 Portfolio (imagen directa)
     fetch(
-      `${BASE_URL}/web/jsonapi/node/portfolio?include=field_project_image`
+      `${BASE_URL}/jsonapi/node/portfolio?include=field_project_image`
     )
       .then((res) => res.json())
       .then((data) => {
