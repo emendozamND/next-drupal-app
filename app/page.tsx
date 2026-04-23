@@ -5,12 +5,6 @@ import Section from "./components/Section";
 
 const BASE_URL = process.env.NEXT_PUBLIC_DRUPAL_BASE_URL!;
 
-const buildUrl = (path: string) => {
-  if (!path) return null;
-  if (path.startsWith("http")) return path; // si ya es absoluto
-  return BASE_URL.replace(/\/$/, "") + path; // unir sin duplicar /web
-};
-
 //  Helper universal para Drupal (media → file)
 const getFileUrl = (entity: any, field: string, filesMap: any) => {
   const mediaId = entity.relationships?.[field]?.data?.id;
