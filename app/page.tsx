@@ -5,14 +5,13 @@ import Section from "./components/Section";
 
 const BASE_URL = process.env.NEXT_PUBLIC_DRUPAL_BASE_URL!;
 
-// 🔧 Función genérica para armar URLs sin duplicar
 const buildUrl = (path: string) => {
   if (!path) return null;
   if (path.startsWith("http")) return path; // si ya es absoluto
   return BASE_URL.replace(/\/$/, "") + path; // unir sin duplicar /web
 };
 
-// 🔹 Helper universal para Drupal (media → file)
+//  Helper universal para Drupal (media → file)
 const getFileUrl = (entity: any, field: string, filesMap: any) => {
   const mediaId = entity.relationships?.[field]?.data?.id;
   const media = mediaId ? filesMap[mediaId] : null;
@@ -21,17 +20,17 @@ const getFileUrl = (entity: any, field: string, filesMap: any) => {
   const file = fileId ? filesMap[fileId] : null;
 
   return file?.attributes?.uri?.url
-    ? buildUrl(file.attributes.uri.url)
+    ? BASE_URL + file.attributes.uri.url
     : null;
 };
 
-// 🔹 Helper para imágenes (file directo)
+//  Helper para imágenes (file directo)
 const getImageUrl = (entity: any, field: string, filesMap: any) => {
   const imageId = entity.relationships?.[field]?.data?.id;
   const file = imageId ? filesMap[imageId] : null;
 
   return file?.attributes?.uri?.url
-    ? buildUrl(file.attributes.uri.url)
+    ? BASE_URL + file.attributes.uri.url
     : null;
 };
 
@@ -42,43 +41,51 @@ export default function HomePage() {
   const [filesMap, setFilesMap] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    // 🔹 Certificates
+    // 🔹 Certificates (media → file)
     fetch(
       `${BASE_URL}/jsonapi/node/certificate?include=field_certificate_file,field_certificate_file.field_media_document`
     )
       .then((res) => res.json())
       .then((data) => {
         setCertificates(data.data || []);
+
         const map: Record<string, any> = {};
         data.included?.forEach((item: any) => {
           map[item.id] = item;
         });
+
         setFilesMap((prev) => ({ ...prev, ...map }));
       });
 
-    // 🔹 Laboral Letters
+    // 🔹 Letters (si también usan media)
     fetch(
       `${BASE_URL}/jsonapi/node/laboral_letter?include=field_laboral_letter_file,field_laboral_letter_file.field_media_document`
     )
       .then((res) => res.json())
       .then((data) => {
         setLetters(data.data || []);
+
         const map: Record<string, any> = {};
         data.included?.forEach((item: any) => {
           map[item.id] = item;
         });
+
         setFilesMap((prev) => ({ ...prev, ...map }));
       });
 
-    // 🔹 Portfolio
-    fetch(`${BASE_URL}/jsonapi/node/portfolio?include=field_project_image`)
+    // 🔹 Portfolio (imagen directa)
+    fetch(
+      `${BASE_URL}/jsonapi/node/portfolio?include=field_project_image`
+    )
       .then((res) => res.json())
       .then((data) => {
         setPortfolio(data.data || []);
+
         const map: Record<string, any> = {};
         data.included?.forEach((item: any) => {
           map[item.id] = item;
         });
+
         setFilesMap((prev) => ({ ...prev, ...map }));
       });
   }, []);
@@ -89,30 +96,34 @@ export default function HomePage() {
 
       {/* Home */}
       <Section id="home" title="Elias Mendoza | Portfolio">
-        <p className="mt-4 text-lg">
-          Elias Mendoza Full-Stack Developer <br />
-          I build modern, efficient and scalable web applications focused on
-          clean code and great user experience.
-        </p>
+       <p className="mt-4 text-lg">
+  Elias Mendoza Full-Stack Developer <br />
+  I build modern, efficient and scalable web applications focused on clean code and great user experience.
+</p>
 
-        <p className="mt-2">
-          What I Do:
-          <br />
-          Drupal, Joomla, WordPress & PHP development
-          <br />
-          Front-end with HTML, CSS & JavaScript
-          <br />
-          Backend logic, APIs & databases
-          <br />
-          Clean, maintainable code
-        </p>
+<p className="mt-2">
+  What I Do:
+  <br />
+  Drupal, Joomla, WordPress & PHP development
+  <br />
+  Front-end with HTML, CSS & JavaScript
+  <br />
+  Backend logic, APIs & databases
+  <br />
+  Clean, maintainable code
+</p>
       </Section>
 
       {/* Certificates */}
       <Section id="certificates" title="Certificates">
         <ul className="space-y-2">
           {certificates.map((c) => {
-            const pdfLink = getFileUrl(c, "field_certificate_file", filesMap);
+            const pdfLink = getFileUrl(
+              c,
+              "field_certificate_file",
+              filesMap
+            );
+
             return (
               <li
                 key={c.id}
@@ -142,7 +153,12 @@ export default function HomePage() {
       <Section id="letters" title="Laboral Letters">
         <ul className="space-y-2">
           {letters.map((l) => {
-            const pdfLink = getFileUrl(l, "field_laboral_letter_file", filesMap);
+            const pdfLink = getFileUrl(
+              l,
+              "field_laboral_letter_file",
+              filesMap
+            );
+
             return (
               <li
                 key={l.id}
@@ -172,8 +188,14 @@ export default function HomePage() {
       <Section id="portfolio" title="Portfolio">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {portfolio.map((p) => {
-            const imageLink = getImageUrl(p, "field_project_image", filesMap);
-            const projectLink = p.attributes?.field_enlace_al_proyecto?.uri;
+            const imageLink = getImageUrl(
+              p,
+              "field_project_image",
+              filesMap
+            );
+
+            const projectLink =
+              p.attributes?.field_enlace_al_proyecto?.uri;
 
             return (
               <div
@@ -181,10 +203,14 @@ export default function HomePage() {
                 className="border p-4 rounded shadow bg-white text-black"
               >
                 <h3 className="font-bold">{p.attributes.title}</h3>
+
                 <p className="text-sm text-gray-600">
                   Fecha: {p.attributes.field_project_date}
                 </p>
-                <p className="text-sm">{p.attributes.field_technologies}</p>
+
+                <p className="text-sm">
+                  {p.attributes.field_technologies}
+                </p>
 
                 {imageLink ? (
                   <img
