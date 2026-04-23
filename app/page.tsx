@@ -5,7 +5,7 @@ import Section from "./components/Section";
 
 const BASE_URL = "https://webysistemas.mx";
 
-//  Helper universal para Drupal (media → file)
+// 🔥 Helper universal para archivos (media → file)
 const getFileUrl = (entity: any, field: string, filesMap: any) => {
   const mediaId = entity.relationships?.[field]?.data?.id;
   const media = mediaId ? filesMap[mediaId] : null;
@@ -18,10 +18,13 @@ const getFileUrl = (entity: any, field: string, filesMap: any) => {
     : null;
 };
 
-//  Helper para imágenes (file directo)
+// 🔥 Helper CORRECTO para imágenes (media → file)
 const getImageUrl = (entity: any, field: string, filesMap: any) => {
-  const imageId = entity.relationships?.[field]?.data?.id;
-  const file = imageId ? filesMap[imageId] : null;
+  const mediaId = entity.relationships?.[field]?.data?.id;
+  const media = mediaId ? filesMap[mediaId] : null;
+
+  const fileId = media?.relationships?.field_media_image?.data?.id;
+  const file = fileId ? filesMap[fileId] : null;
 
   return file?.attributes?.uri?.url
     ? BASE_URL + file.attributes.uri.url
@@ -35,7 +38,7 @@ export default function HomePage() {
   const [filesMap, setFilesMap] = useState<Record<string, any>>({});
 
   useEffect(() => {
-    // 🔹 Certificates (media → file)
+    // 🔹 Certificates
     fetch(
       `${BASE_URL}/web/jsonapi/node/certificate?include=field_certificate_file,field_certificate_file.field_media_document`
     )
@@ -49,9 +52,10 @@ export default function HomePage() {
         });
 
         setFilesMap((prev) => ({ ...prev, ...map }));
-      });
+      })
+      .catch(console.error);
 
-    // 🔹 Letters (si también usan media)
+    // 🔹 Letters
     fetch(
       `${BASE_URL}/web/jsonapi/node/laboral_letter?include=field_laboral_letter_file,field_laboral_letter_file.field_media_document`
     )
@@ -65,11 +69,12 @@ export default function HomePage() {
         });
 
         setFilesMap((prev) => ({ ...prev, ...map }));
-      });
+      })
+      .catch(console.error);
 
-    // 🔹 Portfolio (imagen directa)
+    // 🔥 Portfolio (CORREGIDO)
     fetch(
-      `${BASE_URL}/web/jsonapi/node/portfolio?include=field_project_image`
+      `${BASE_URL}/web/jsonapi/node/portfolio?include=field_project_image.field_media_image`
     )
       .then((res) => res.json())
       .then((data) => {
@@ -81,7 +86,8 @@ export default function HomePage() {
         });
 
         setFilesMap((prev) => ({ ...prev, ...map }));
-      });
+      })
+      .catch(console.error);
   }, []);
 
   return (
@@ -90,22 +96,22 @@ export default function HomePage() {
 
       {/* Home */}
       <Section id="home" title="Elias Mendoza | Portfolio">
-       <p className="mt-4 text-lg">
-  Elias Mendoza Full-Stack Developer <br />
-  I build modern, efficient and scalable web applications focused on clean code and great user experience.
-</p>
+        <p className="mt-4 text-lg">
+          Elias Mendoza Full-Stack Developer <br />
+          I build modern, efficient and scalable web applications focused on clean code and great user experience.
+        </p>
 
-<p className="mt-2">
-  What I Do:
-  <br />
-  Drupal, Joomla, WordPress & PHP development
-  <br />
-  Front-end with HTML, CSS & JavaScript
-  <br />
-  Backend logic, APIs & databases
-  <br />
-  Clean, maintainable code
-</p>
+        <p className="mt-2">
+          What I Do:
+          <br />
+          Drupal, Joomla, WordPress & PHP development
+          <br />
+          Front-end with HTML, CSS & JavaScript
+          <br />
+          Backend logic, APIs & databases
+          <br />
+          Clean, maintainable code
+        </p>
       </Section>
 
       {/* Certificates */}
@@ -143,7 +149,7 @@ export default function HomePage() {
         </ul>
       </Section>
 
-      {/* Laboral Letters */}
+      {/* Letters */}
       <Section id="letters" title="Laboral Letters">
         <ul className="space-y-2">
           {letters.map((l) => {
@@ -234,7 +240,7 @@ export default function HomePage() {
         </div>
       </Section>
 
-      {/* Contacto */}
+      {/* Contact */}
       <Section id="contact" title="Contacto">
         <p>📧 eliasmm@gmail.com</p>
         <p>📞 5542796054</p>
