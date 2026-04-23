@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Navbar from "./components/Navbar";
 import Section from "./components/Section";
 
-const BASE_URL = process.env.NEXT_PUBLIC_DRUPAL_BASE_URL!;
+const BASE_URL = "https://webysistemas.mx";
 
 //  Helper universal para Drupal (media → file)
 const getFileUrl = (entity: any, field: string, filesMap: any) => {
